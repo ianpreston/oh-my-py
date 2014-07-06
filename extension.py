@@ -3,32 +3,32 @@ import shlex
 import os
 import os.path
 import keyword
+import re
 
 from IPython.core.inputtransformer import StatelessInputTransformer
 from IPython.utils.text import SList
 
 
 def bltn_dot_slash(line, tokens):
-    if line.startswith('.'):
-        _execute(line)
-        return True
+    if not line.startswith('.'):
+        return False
 
-    return False
+    _execute(line)
+    return True
 
 
 def bltn_cd(line, tokens):
-    if tokens[0] == 'cd':
-        path_spec = ' '.join(tokens[1:])
-        path_spec = os.path.expanduser(path_spec)
-        path_spec = ipython.var_expand(path_spec)
-        os.chdir(path_spec)
-        return True
+    if tokens[0] != 'cd':
+        return False
 
-    return False
+    path_spec = ' '.join(tokens[1:])
+    path_spec = os.path.expanduser(path_spec)
+    path_spec = ipython.var_expand(path_spec)
+    os.chdir(path_spec)
+    return True
 
 
 BUILTINS = [
-    # TODO - Builtin equivelant for 'workon'
     bltn_dot_slash,
     bltn_cd,
 ]
@@ -102,14 +102,15 @@ def _shell_out_tty(command):
     os.system(command)
 
 
-def _execute(command):
+def _execute(command, local='_', suppress_output=False):
     output = _shell_out(command)
 
     # Create (or overwrite) a local variable in the user's namespace
     # called '_', and assign its value as the result of the shell command.
     # Display the command's stdout as well, as is expected of command shells
-    print output,
-    ipython.push({'_': output})
+    if not suppress_output:
+        print output,
+    ipython.push({local: output})
     return output
 
 
@@ -126,8 +127,31 @@ def bang(line):
     # namespace, then replace the shell command portion of the input line
     # with the new variable's identifier. End the line with a semicolon
     # so that repr(output) won't be displayed to the user.
-    output = _execute(command)
+    output = _execute(command, '_')
     return line[:shell_start] + '_' + ';'
+
+
+@StatelessInputTransformer.wrap
+def backtick(line):
+    if '`' not in line:
+        return line
+
+    # Find pairs of backticks in the line
+    backtick_commands = re.findall(r'`(.*?)`', line)
+
+    # Call _execute() on each command, pushing variables to the user's scope 
+    for i, command in enumerate(backtick_commands):
+        varname = '_' + str(i)
+        _execute(command, varname, suppress_output=True)
+
+    # Replace backtick sections of the input line with the variables
+    # created above
+    output_line = line
+    for i, _ in enumerate(backtick_commands):
+        varname = '_' + str(i)
+        output_line = re.sub(r'`(.*?)`', varname, output_line, count=1)
+
+    return output_line
 
 
 @StatelessInputTransformer.wrap
@@ -145,7 +169,7 @@ def alias(line):
     shell_line = [resolved_command] + tokens[1:]
     shell_line = ' '.join(shell_line)
 
-    # TODO - In many cases, _execute would be a better option here than
+    # TODO - In many cases, _execute would be a better option here
     _shell_out_tty(shell_line)
     return ''
 
@@ -166,6 +190,7 @@ def load_ipython_extension(_ipython):
     global ipython
     ipython = _ipython
 
+    ipython.input_transformer_manager.logical_line_transforms.insert(0, backtick())
     ipython.input_transformer_manager.logical_line_transforms.insert(0, bang())
     ipython.input_transformer_manager.logical_line_transforms.insert(1, builtin()) 
     ipython.input_transformer_manager.logical_line_transforms.insert(2, alias())
