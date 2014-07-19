@@ -10,8 +10,10 @@ Right now it's pretty small, not extensively tested, and based more on my own pr
 ## Install
 
     $ git clone https://github.com/ianpreston/ohmypy.git
-    $ ipython profile create sh
-    $ ln -s /path/to/ohmypy/extension.py ~/.ipython/extensions/ohmypy.py
+    $ virtualenv /path/to/ohmypy/venv
+    $ /path/to/ohmypy/venv/bin/pip install ipython pexpect
+    $ /path/to/ohmypy/venv/bin/ipython profile create sh
+    $ ln -s /path/to/ohmypy/extension/ ~/.ipython/extensions/ohmypy
     $ ln -s /path/to/ohmypy/config.py ~/.ipython/profile_sh/ipython_config.py
 
 
