@@ -27,7 +27,10 @@ def bltn_cd(line, tokens):
     path_spec = ' '.join(tokens[1:])
     path_spec = os.path.expanduser(path_spec)
     path_spec = ipython.var_expand(path_spec)
-    os.chdir(path_spec)
+    try:
+        os.chdir(path_spec)
+    except OSError, e:
+        print str(e)
     return True
 
 
