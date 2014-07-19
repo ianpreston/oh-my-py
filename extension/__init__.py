@@ -1,22 +1,20 @@
-import subprocess
 import os
 import os.path
 import sys
-import pty
-import fcntl
-import select
 import keyword
 import re
 
 from IPython.core.inputtransformer import StatelessInputTransformer
 from IPython.utils.text import SList
 
+from system import execute
+
 
 def bltn_dot_slash(line, tokens):
     if not line.startswith('.'):
         return False
 
-    _execute(line)
+    execute(ipython, line, tty=True, suppress_output=True)
     return True
 
 
@@ -45,8 +43,8 @@ ALIAS_EXEMPT = keyword.kwlist + [
     'env',
 ]
 
-ipython = None
 aliases = {}
+ipython = None
 
 
 def _initialize_aliases():
@@ -65,95 +63,6 @@ def _initialize_aliases():
             if os.access(child_abs, os.X_OK):
                 aliases[child_base] = child_abs
 
-
-class ShellResult(str):
-    @classmethod
-    def make(cls, stdout, stderr, code, cmd):
-        inst = cls(stdout)
-        inst.stdout = stdout
-        inst.stderr = stderr
-        inst.code = code
-        inst.cmd = cmd
-        return inst
-
-    def __gt__(self, filename):
-        with open(filename, 'w') as f:
-            f.write(self)
-
-    def __rshift__(self, filename):
-        with open(filename, 'a') as f:
-            f.write(self)
-
-    @property
-    def l(self):
-        return self.splitlines()
-
-
-def _shell_out(command):
-    command = ipython.var_expand(command)
-    p = subprocess.Popen(
-        command,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    stdout, stderr = p.communicate()
-    code = p.wait()
-
-    return ShellResult.make(stdout=stdout, stderr=stderr, code=code, cmd=command)
-
-
-def _shell_out_tty(command):
-    command = ipython.var_expand(command)
-    master, slave = pty.openpty()
-
-    fcntl.fcntl(master, fcntl.F_SETFL, os.O_NONBLOCK)
-    p = subprocess.Popen(
-        command,
-        shell=True,
-        stdout=slave,
-        stderr=subprocess.STDOUT,
-    )
-    os.close(slave)
-
-    log = ''
-    with os.fdopen(master, 'r') as m:
-        while True:
-            try:
-                try:
-                    rfds, _, _ = select.select([m], [], [], 0.1)
-                except select.error:
-                    continue
-                for fd in rfds:
-                    buf = fd.read()
-                    if buf == '':
-                        raise EOFError()
-                    log += buf
-                    sys.stdout.write(buf)
-                    sys.stdout.flush()
-            except EOFError:
-                break
-
-    code = p.wait()
-    return ShellResult.make(stdout=log, stderr=None, code=code, cmd=command)
-
-
-def _execute(command, tty=False, local='_', suppress_output=False):
-    if tty:
-        fn = _shell_out_tty
-    else:
-        fn = _shell_out
-    output = fn(command)
-
-    # Create (or overwrite) a local variable in the user's namespace
-    # called '_', and assign its value as the result of the shell command.
-    # Display the command's stdout as well, as is expected of command shells
-    if not suppress_output:
-        print output,
-    ipython.push({local: output})
-    return output
-
-
 @StatelessInputTransformer.wrap
 def bang(line):
     if '!' not in line:
@@ -169,7 +78,7 @@ def bang(line):
     # namespace, then replace the shell command portion of the input line
     # with the new variable's identifier. End the line with a semicolon
     # so that repr(output) won't be displayed to the user.
-    output = _execute(command, '_')
+    output = execute(ipython, command, local='_')
     return line[:shell_start] + '_' + ';'
 
 
@@ -181,10 +90,11 @@ def backtick(line):
     # Find pairs of backticks in the line
     backtick_commands = re.findall(r'`(.*?)`', line)
 
-    # Call _execute() on each command, pushing variables to the user's scope 
+    # Execute each backtick command, pushing multiple variables into the
+    # user namespace
     for i, command in enumerate(backtick_commands):
         varname = '_' + str(i)
-        _execute(command, varname, suppress_output=True)
+        execute(ipython, command, local=varname, suppress_output=True)
 
     # Replace backtick sections of the input line with the variables
     # created above
@@ -211,7 +121,7 @@ def alias(line):
     shell_line = [resolved_command] + tokens[1:]
     shell_line = ' '.join(shell_line)
 
-    _execute(shell_line, tty=True, suppress_output=True)
+    execute(ipython, shell_line, tty=True, suppress_output=True)
     return ''
 
 
