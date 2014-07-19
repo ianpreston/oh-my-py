@@ -1,5 +1,4 @@
 import subprocess
-import shlex
 import os
 import os.path
 import sys
@@ -157,6 +156,8 @@ def bang(line):
     if '!' not in line:
         return line
 
+    # TODO - Handle nonexistant commands properly
+
     shell_start = line.index('!')
     command = line[shell_start+1:]
     command = ipython.var_expand(command)
@@ -197,7 +198,7 @@ def alias(line):
     if not len(line):
         return ''
 
-    tokens = shlex.split(line.encode('utf8'))
+    tokens = line.split(u' ')
     command = tokens[0]
 
     if command not in aliases.keys():
@@ -213,7 +214,7 @@ def alias(line):
 
 @StatelessInputTransformer.wrap
 def builtin(line):
-    tokens = shlex.split(line.encode('utf8'))
+    tokens = line.split(u' ')
 
     for bltn in BUILTINS:
         activated = bltn(line, tokens)
