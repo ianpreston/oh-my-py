@@ -1,13 +1,25 @@
-# Oh My Py
+# oh-my-py
 
-As it turns out, [ipython](http://ipython.org/) is actually really good at being a command shell, though it needs a little bit of tuning out of the box to really be usable as a day-to-day replacement for `fish`, `zsh`, et al.
+[IPython](http://ipython.org/) isn't only an excellent Python REPL -- it can be a formidable general-purpose command shell if configured properly, easily capable of being a replacement for `zsh`, `fish`, et al.
 
-`ohmypy` aims to address the tuning part of that by overriding some of IPython's default behavior and adding more shell-like functionality.
+The "configured properly" part is where `ohmypy` comes in. It's kind of like `oh-my-zsh` for IPython. It provides a barebones level of integration between `/bin/sh` and regular Python code, and serves as a starting point on top of which to build your own fully-featured command shell.
 
-Right now it's pretty small, not extensively tested, and based more on my own preferences than anything else. In its current work-in-progress state I'd consider it a decent jumping-off point to learn how to build the same kind of thing yourself, but it's not exactly production ready.
+
+## Example
+
+    In [1]: vim test.txt
+    In [2]: cat test.txt
+    hello 
+    In [3]: r = `cat test.txt`
+    In [4]: print r[::-1]
+    olleh
+    In [5]: /bin/echo -n {r}
+    hello
 
 
 ## Install
+
+First, create an IPython installation and configure it for `ohmypy`
 
     $ git clone https://github.com/ianpreston/ohmypy.git
     $ virtualenv /path/to/ohmypy/venv
@@ -15,6 +27,10 @@ Right now it's pretty small, not extensively tested, and based more on my own pr
     $ /path/to/ohmypy/venv/bin/ipython profile create sh
     $ ln -s /path/to/ohmypy/extension/ ~/.ipython/extensions/ohmypy
     $ ln -s /path/to/ohmypy/config.py ~/.ipython/profile_sh/ipython_config.py
+
+Then, update your terminal emulator to run the new IPython profile as a login session. Here's an example:
+
+    /usr/bin/login -f -l YOUR_USERNAME /path/to/ohmypy/venv/bin/ipython --profile sh
 
 
 ## License
