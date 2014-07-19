@@ -11,7 +11,7 @@ from system import execute
 
 
 def bltn_dot_slash(line, tokens):
-    if not line.startswith('.'):
+    if line[0] not in ('.', '/'):
         return False
 
     execute(ipython, line)
