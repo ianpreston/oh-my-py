@@ -47,13 +47,31 @@ aliases = {}
 ipython = None
 
 
+
+def _parse_path(src=None, sep=None):
+    if src is None:
+        src = os.environ['PATH']
+    if sep is None:
+        sep = ':'
+
+    paths = src.split(sep)
+    paths = [r.strip() for r in paths if r.strip()]
+    return paths
+
+
+def _initialize_path():
+    existing_paths = _parse_path()
+    with open('/etc/paths', 'r') as f:
+        new_paths = _parse_path(f.read(), '\n')
+
+    roots = set(existing_paths) | set(new_paths)
+    os.environ['PATH'] = ':'.join(roots)
+
+
 def _initialize_aliases():
     global aliases
 
-    # FIXME - Assumes $PATH is delimited by ':'
-    roots = os.environ['PATH'].split(':')
-    roots = [r.strip() for r in roots if r.strip()]
-
+    roots = _parse_path()
     for root in roots:
         for child in os.listdir(root):
             child_abs  = os.path.join(root, child)
@@ -62,6 +80,7 @@ def _initialize_aliases():
                 continue
             if os.access(child_abs, os.X_OK):
                 aliases[child_base] = child_abs
+
 
 @StatelessInputTransformer.wrap
 def bang(line):
@@ -145,4 +164,5 @@ def load_ipython_extension(_ipython):
     ipython.input_transformer_manager.logical_line_transforms.insert(1, builtin()) 
     ipython.input_transformer_manager.logical_line_transforms.insert(2, alias())
 
+    _initialize_path()
     _initialize_aliases()
