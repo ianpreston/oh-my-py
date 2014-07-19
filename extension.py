@@ -2,6 +2,10 @@ import subprocess
 import shlex
 import os
 import os.path
+import sys
+import pty
+import fcntl
+import select
 import keyword
 import re
 
@@ -99,11 +103,45 @@ def _shell_out(command):
 
 def _shell_out_tty(command):
     command = ipython.var_expand(command)
-    os.system(command)
+    master, slave = pty.openpty()
+
+    fcntl.fcntl(master, fcntl.F_SETFL, os.O_NONBLOCK)
+    p = subprocess.Popen(
+        command,
+        shell=True,
+        stdout=slave,
+        stderr=subprocess.STDOUT,
+    )
+    os.close(slave)
+
+    log = ''
+    with os.fdopen(master, 'r') as m:
+        while True:
+            try:
+                try:
+                    rfds, _, _ = select.select([m], [], [], 0.1)
+                except select.error:
+                    continue
+                for fd in rfds:
+                    buf = fd.read()
+                    if buf == '':
+                        raise EOFError()
+                    log += buf
+                    sys.stdout.write(buf)
+                    sys.stdout.flush()
+            except EOFError:
+                break
+
+    code = p.wait()
+    return ShellResult.make(stdout=log, stderr=None, code=code, cmd=command)
 
 
-def _execute(command, local='_', suppress_output=False):
-    output = _shell_out(command)
+def _execute(command, tty=False, local='_', suppress_output=False):
+    if tty:
+        fn = _shell_out_tty
+    else:
+        fn = _shell_out
+    output = fn(command)
 
     # Create (or overwrite) a local variable in the user's namespace
     # called '_', and assign its value as the result of the shell command.
@@ -169,8 +207,7 @@ def alias(line):
     shell_line = [resolved_command] + tokens[1:]
     shell_line = ' '.join(shell_line)
 
-    # TODO - In many cases, _execute would be a better option here
-    _shell_out_tty(shell_line)
+    _execute(shell_line, tty=True, suppress_output=True)
     return ''
 
 
