@@ -8,10 +8,9 @@ import select
 
 class ShellResult(str):
     @classmethod
-    def make(cls, stdout, stderr, code, cmd):
+    def make(cls, stdout, code, cmd):
         inst = cls(stdout)
         inst.stdout = stdout
-        inst.stderr = stderr
         inst.code = code
         inst.cmd = cmd
         return inst
@@ -27,19 +26,6 @@ class ShellResult(str):
     @property
     def l(self):
         return self.splitlines()
-
-
-def _shell_out(command):
-    p = subprocess.Popen(
-        command,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    stdout, stderr = p.communicate()
-    code = p.wait()
-
-    return ShellResult.make(stdout=stdout, stderr=stderr, code=code, cmd=command)
 
 
 def _shell_out_tty(command):
@@ -73,22 +59,14 @@ def _shell_out_tty(command):
                 break
 
     code = p.wait()
-    return ShellResult.make(stdout=log, stderr=None, code=code, cmd=command)
+    return ShellResult.make(stdout=log, code=code, cmd=command)
 
 
-def execute(ipython, command, tty=False, local='_', suppress_output=False):
+def execute(ipython, command, local='_'):
     command = ipython.var_expand(command)
-
-    if tty:
-        fn = _shell_out_tty
-    else:
-        fn = _shell_out
-    output = fn(command)
+    output = _shell_out_tty(command)
 
     # Create (or overwrite) a local variable in the user's namespace
     # called '_', and assign its value as the result of the shell command.
-    # Display the command's stdout as well, as is expected of command shells
-    if not suppress_output:
-        print output,
     ipython.push({local: output})
     return output

@@ -14,7 +14,7 @@ def bltn_dot_slash(line, tokens):
     if not line.startswith('.'):
         return False
 
-    execute(ipython, line, tty=True, suppress_output=True)
+    execute(ipython, line)
     return True
 
 
@@ -72,7 +72,6 @@ def bang(line):
 
     shell_start = line.index('!')
     command = line[shell_start+1:]
-    command = ipython.var_expand(command)
 
     # Execute the given command, injecting a new variable into the user's
     # namespace, then replace the shell command portion of the input line
@@ -94,7 +93,7 @@ def backtick(line):
     # user namespace
     for i, command in enumerate(backtick_commands):
         varname = '_' + str(i)
-        execute(ipython, command, local=varname, suppress_output=True)
+        execute(ipython, command, local=varname)
 
     # Replace backtick sections of the input line with the variables
     # created above
@@ -121,7 +120,7 @@ def alias(line):
     shell_line = [resolved_command] + tokens[1:]
     shell_line = ' '.join(shell_line)
 
-    execute(ipython, shell_line, tty=True, suppress_output=True)
+    execute(ipython, shell_line)
     return ''
 
 
