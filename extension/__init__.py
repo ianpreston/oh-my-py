@@ -60,11 +60,17 @@ def _parse_path(src=None, sep=None):
 
 
 def _initialize_path():
+    # Get existing $PATH, if set
     existing_paths = _parse_path()
+
+    # Append /etc/paths
     with open('/etc/paths', 'r') as f:
         new_paths = _parse_path(f.read(), '\n')
 
-    roots = set(existing_paths) | set(new_paths)
+    # Append the virtualenv that contains this IPython installation
+    venv_path = os.path.dirname(sys.executable)
+
+    roots = set([venv_path]) | set(existing_paths) | set(new_paths)
     os.environ['PATH'] = ':'.join(roots)
 
 
