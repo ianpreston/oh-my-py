@@ -2,8 +2,7 @@
 
 [IPython](http://ipython.org/) isn't only an excellent Python REPL -- it can be a formidable general-purpose command shell if configured properly, easily capable of being a replacement for `zsh`, `fish`, et al.
 
-The "configured properly" part is where `ohmypy` comes in. It's kind of like `oh-my-zsh` for IPython. It provides a barebones level of integration between `/bin/sh` and regular Python code, and serves as a starting point on top of which to build your own fully-featured command shell.
-
+`oh-my-py` is a proof-of-concept command shell *thing* for IPython. It's somewhere between a collection of utilities, and a fully-featured command shell. Essentially, it's a brain dump of various IPython-as-a-command-shell ideas.
 
 ## Example
 
@@ -19,9 +18,9 @@ The "configured properly" part is where `ohmypy` comes in. It's kind of like `oh
 
 ## Install
 
-First, create an IPython installation and configure it for `ohmypy`
+First, create an IPython installation and configure it for `oh-my-py`
 
-    $ git clone https://github.com/ianpreston/ohmypy.git
+    $ git clone https://github.com/ianpreston/oh-my-py.git
     $ virtualenv /path/to/ohmypy/venv
     $ /path/to/ohmypy/venv/bin/pip install ipython pexpect
     $ /path/to/ohmypy/venv/bin/ipython profile create sh
