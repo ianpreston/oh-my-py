@@ -4,16 +4,16 @@
 
 `oh-my-py` is a proof-of-concept command shell *thing* for IPython. It's somewhere between a collection of utilities, and a fully-featured command shell. Essentially, it's a brain dump of various IPython-as-a-command-shell ideas.
 
+
 ## Example
 
-    In [1]: vim test.txt
-    In [2]: cat test.txt
-    hello 
-    In [3]: r = `cat test.txt`
-    In [4]: print r[::-1]
-    olleh
-    In [5]: /bin/echo -n {r}
-    hello
+    > with open('test.txt', 'w') as f:
+          f.write('Hello world!')
+    > x = `cat test.txt`
+    > print x
+    Hello world!
+    > y = 'test.txt'
+    > vim {y}
 
 
 ## Install
