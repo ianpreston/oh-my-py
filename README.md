@@ -7,13 +7,16 @@
 
 ## Example
 
-    > with open('test.txt', 'w') as f:
+    > fn = 'test.txt'
+    > with open(fn, 'w') as f:
           f.write('Hello world!')
     > x = `cat test.txt`
     > print x
     Hello world!
-    > y = 'test.txt'
-    > vim {y}
+    > vim {fn}
+    > x = !cat {fn}
+    > print x
+    Hello edited file!
 
 
 ## Install
