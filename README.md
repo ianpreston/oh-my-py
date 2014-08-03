@@ -18,18 +18,18 @@
 
 ## Install
 
-First, create an IPython installation and configure it for `oh-my-py`
+Clone the git repository and run the install script:
 
-    $ git clone https://github.com/ianpreston/oh-my-py.git
-    $ virtualenv /path/to/ohmypy/venv
-    $ /path/to/ohmypy/venv/bin/pip install ipython pexpect
-    $ /path/to/ohmypy/venv/bin/ipython profile create sh
-    $ ln -s /path/to/ohmypy/extension/ ~/.ipython/extensions/ohmypy
-    $ ln -s /path/to/ohmypy/config.py ~/.ipython/profile_sh/ipython_config.py
+    $ git clone https://github.com/ianpreston/oh-my-py.git && cd oh-my-py
+    $ ./install.sh
 
-Then, update your terminal emulator to run the new IPython profile as a login session. Here's an example:
+You can run it from your existing shell to give it a try:
 
-    /usr/bin/login -f -l YOUR_USERNAME /path/to/ohmypy/venv/bin/ipython --profile sh
+    $ /usr/bin/login -f -l YOUR_USERNAME /usr/local/bin/ipython --profile sh
+
+Or, more simply:
+
+    $ ipython --profile sh
 
 
 ## License
