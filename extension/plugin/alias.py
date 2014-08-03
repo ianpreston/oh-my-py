@@ -19,7 +19,7 @@ EXEMPT = keyword.kwlist + [
 class AliasPlugin(Plugin):
     def __init__(self, ipython):
         super(AliasPlugin, self).__init__(ipython)
-        self._aliases = {}
+        self._aliases = [] 
 
     def load(self):
         self._initialize_aliases()
@@ -34,7 +34,7 @@ class AliasPlugin(Plugin):
                 if child_base in EXEMPT:
                     continue
                 if os.access(child_abs, os.X_OK):
-                    self._aliases[child_base] = child_abs
+                    self._aliases.append(child_base)
 
     @property
     def _transformer(self):
@@ -47,13 +47,9 @@ class AliasPlugin(Plugin):
         tokens = line.split(u' ')
         command = tokens[0]
     
-        if command not in self._aliases.keys():
+        if command not in self._aliases:
             return line
     
-        resolved_command = self._aliases[command]
-        shell_line = [resolved_command] + tokens[1:]
-        shell_line = ' '.join(shell_line)
-    
-        execute(self.ipython, shell_line)
+        execute(self.ipython, line)
         return ''
 
