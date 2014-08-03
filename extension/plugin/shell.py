@@ -45,13 +45,13 @@ class ShellPlugin(Plugin):
         try:
             # We must append a dummy expression to the string, since the
             # `sh_expr` part will be treated as an expression.
-            n = ast.parse(py_expr + '1')
+            ast.parse(py_expr + '1')
         except SyntaxError:
             return line
 
         # Run the `sh_expr` part with /bin/sh and save its output as a local
         # variable named underscore
-        output = execute(self.ipython, sh_expr, local='_')
+        execute(self.ipython, sh_expr, local='_')
 
         # Replace the `sh_expr` part with a literal underscore (and a
         # semicolom, to suppress IPython output)
@@ -60,22 +60,21 @@ class ShellPlugin(Plugin):
     def _raw_backtick_transformer(self, line):
         if '`' not in line:
             return line
-    
+
         # Find pairs of backticks in the line
         backtick_commands = re.findall(r'`(.*?)`', line)
-    
+
         # Execute each backtick command, pushing multiple variables into the
         # user namespace
         for i, command in enumerate(backtick_commands):
             varname = '_' + str(i)
             execute(self.ipython, command, local=varname)
-    
+
         # Replace backtick sections of the input line with the variables
         # created above
         output_line = line
         for i, _ in enumerate(backtick_commands):
             varname = '_' + str(i)
             output_line = re.sub(r'`(.*?)`', varname, output_line, count=1)
-    
-        return output_line
 
+        return output_line

@@ -4,4 +4,3 @@ class Plugin(object):
 
     def load(self):
         raise NotImplementedError()
-

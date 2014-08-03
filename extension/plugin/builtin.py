@@ -13,7 +13,10 @@ class BuiltinPlugin(Plugin):
         self._register(self._dot_slash)
         self._register(self._cd)
 
-        self.ipython.input_transformer_manager.logical_line_transforms.insert(1, self._transformer())
+        self.ipython.input_transformer_manager.logical_line_transforms.insert(
+            1,
+            self._transformer(),
+        )
 
     def _register(self, meth):
         self.builtins.append(meth)
@@ -22,14 +25,14 @@ class BuiltinPlugin(Plugin):
     def _dot_slash(self, line, tokens):
         if line[0] not in ('.', '/'):
             return False
-    
+
         execute(self.ipython, line)
         return True
-    
+
     def _cd(self, line, tokens):
         if tokens[0] != 'cd':
             return False
-    
+
         path_spec = ' '.join(tokens[1:])
         path_spec = os.path.expanduser(path_spec)
         path_spec = self.ipython.var_expand(path_spec)
@@ -50,4 +53,3 @@ class BuiltinPlugin(Plugin):
             if activated:
                 return ''
         return line
-

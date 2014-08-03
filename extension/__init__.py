@@ -1,7 +1,3 @@
-import os
-import os.path
-import sys
-
 from plugin.alias import AliasPlugin
 from plugin.builtin import BuiltinPlugin
 from plugin.shell import ShellPlugin

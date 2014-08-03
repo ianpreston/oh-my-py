@@ -12,18 +12,21 @@ from . import Plugin
 EXEMPT = keyword.kwlist + [
     'cd',
     'exit',
-    'env', 
+    'env',
 ]
 
 
 class AliasPlugin(Plugin):
     def __init__(self, ipython):
         super(AliasPlugin, self).__init__(ipython)
-        self._aliases = [] 
+        self._aliases = []
 
     def load(self):
         self._initialize_aliases()
-        self.ipython.input_transformer_manager.logical_line_transforms.insert(1, self._transformer())       
+        self.ipython.input_transformer_manager.logical_line_transforms.insert(
+            1,
+            self._transformer(),
+        )
 
     def _initialize_aliases(self):
         roots = parse_path()
@@ -43,13 +46,12 @@ class AliasPlugin(Plugin):
     def _raw_transformer(self, line):
         if not len(line):
             return ''
-    
+
         tokens = line.split(u' ')
         command = tokens[0]
-    
+
         if command not in self._aliases:
             return line
-    
+
         execute(self.ipython, line)
         return ''
-
