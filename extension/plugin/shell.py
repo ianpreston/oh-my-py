@@ -1,3 +1,4 @@
+import ast
 import re
 
 from IPython.core.inputtransformer import StatelessInputTransformer
@@ -31,19 +32,30 @@ class ShellPlugin(Plugin):
     def _raw_bang_transformer(self, line):
         if '!' not in line:
             return line
-    
-        # TODO - Handle nonexistant commands properly
-    
-        shell_start = line.index('!')
-        command = line[shell_start+1:]
-    
-        # Execute the given command, injecting a new variable into the user's
-        # namespace, then replace the shell command portion of the input line
-        # with the new variable's identifier. End the line with a semicolon
-        # so that repr(output) won't be displayed to the user.
-        output = execute(self.ipython, command, local='_')
-        return line[:shell_start] + '_' + ';'
 
+        # Split the expression into two parts; everything up to the '!' is
+        # considered as Python code, everything after the '!' is considered
+        # as /bin/sh-syntax code.
+        py_expr, sh_expr = line.split('!', 1)
+
+        # If `py_expr` is not valid Python on its own, we want to ignore this
+        # line and just execute the whole thing as Python. For example, if the
+        # input line is `` print 'Hello world!' ``, we don't want to treat that
+        # as a shell command.
+        try:
+            # We must append a dummy expression to the string, since the
+            # `sh_expr` part will be treated as an expression.
+            n = ast.parse(py_expr + '1')
+        except SyntaxError:
+            return line
+
+        # Run the `sh_expr` part with /bin/sh and save its output as a local
+        # variable named underscore
+        output = execute(self.ipython, sh_expr, local='_')
+
+        # Replace the `sh_expr` part with a literal underscore (and a
+        # semicolom, to suppress IPython output)
+        return py_expr + '_' + ';'
 
     def _raw_backtick_transformer(self, line):
         if '`' not in line:
