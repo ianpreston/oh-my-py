@@ -23,6 +23,8 @@ class BuiltinPlugin(Plugin):
         return meth
 
     def _dot_slash(self, line, tokens):
+        if not len(line):
+            return False
         if line[0] not in ('.', '/'):
             return False
 
