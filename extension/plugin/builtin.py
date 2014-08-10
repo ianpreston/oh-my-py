@@ -1,7 +1,7 @@
 import os
 from IPython.core.inputtransformer import StatelessInputTransformer
 from . import Plugin
-from ..shell import execute
+from ..system import execute
 
 
 class BuiltinPlugin(Plugin):
