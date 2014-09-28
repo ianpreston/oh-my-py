@@ -40,8 +40,8 @@ class BuiltinPlugin(Plugin):
         path_spec = self.ipython.var_expand(path_spec)
         try:
             os.chdir(path_spec)
-        except OSError, e:
-            print str(e)
+        except OSError as e:
+            print(str(e))
         return True
 
     @property

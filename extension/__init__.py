@@ -1,8 +1,8 @@
-from plugin.alias import AliasPlugin
-from plugin.builtin import BuiltinPlugin
-from plugin.shell import ShellPlugin
-import magic.activate
-from path import initialize_path
+from ohmypy.plugin.alias import AliasPlugin
+from ohmypy.plugin.builtin import BuiltinPlugin
+from ohmypy.plugin.shell import ShellPlugin
+import ohmypy.magic.activate
+from .path import initialize_path
 
 
 def load_ipython_extension(ipython):
@@ -12,5 +12,5 @@ def load_ipython_extension(ipython):
         plinst = pl(ipython)
         plinst.load()
 
-    for ml in (magic.activate,):
+    for ml in (ohmypy.magic.activate,):
         ml.load(ipython)

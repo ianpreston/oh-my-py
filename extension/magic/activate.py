@@ -10,7 +10,7 @@ def activate(ipython, venv):
     venv_activate = os.path.join(venv, 'bin', 'activate_this.py')
 
     if not os.path.exists(venv_activate):
-        print 'Not a virtualenv:', venv
+        print('Not a virtualenv: {}'.format(venv))
         return
 
     # activate_this.py doesn't set VIRTUAL_ENV, so we must set it here
@@ -18,7 +18,7 @@ def activate(ipython, venv):
     os.putenv('VIRTUAL_ENV', venv)
 
     execfile(venv_activate, {'__file__': venv_activate})
-    print 'Activated', venv
+    print('Activated: {}'.format(venv))
 
 
 def load(ipython):
